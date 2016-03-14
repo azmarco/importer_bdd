@@ -2,7 +2,7 @@
 ===================================== Marco Aouzoulene ===================================
 ================================Importation des BDD distantes ============================
 ===================================== IDE : Code::Blocks =================================
-==================================== Language utilisé : C++ ==============================
+==================================== Language utilise : C++ ==============================
 ========================================================================================*/
 
 //Bibliotheques C++
@@ -59,7 +59,7 @@ void test(char* operation_sur_base, char* nom_base, bool success)
 
 int main(void)
 {
-    //Déclarations des bases
+    //Declarations des bases
     MYSQL* base_meteo = mysql_init(NULL);
     MYSQL* base_temperatures = mysql_init(NULL);
     MYSQL* base_fluidart = mysql_init(NULL);
@@ -130,7 +130,7 @@ int main(void)
         { */
         test("connexion", "base_meteo", true);
 
-        //Instructions météo
+        //Instructions meteo
         char commande_meteo[] = "select * from meteo_valeurs_brutes;";
         mysql_query(base_meteo, commande_meteo);
         MYSQL_RES *resultat_meteo = mysql_store_result(base_meteo);
