@@ -12,7 +12,6 @@
 #include <cstring>
 #include <iostream>
 //Bibliotheques C
-#include <string.h>
 #include <time.h>
 #include <winsock.h>
 #include <MYSQL/mysql.h>
