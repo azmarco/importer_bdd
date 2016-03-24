@@ -62,7 +62,8 @@ int main(void)
     MYSQL* base_meteo = mysql_init(NULL);
     MYSQL* base_temperatures = mysql_init(NULL);
     MYSQL* base_fluidart = mysql_init(NULL);
-    MYSQL_ROW row;
+    MYSQL_ROW tableau_resultat_solaire;
+    MYSQL_ROW tableau_resultat_meteo;
 
     //Tests d'init sur base meteo
     if(base_meteo==NULL)
@@ -105,10 +106,10 @@ int main(void)
                                 "172.16.0.1", "iris2", "iris2fluidart",
                                 "solaireLGM",1235,NULL,0);
     MYSQL* connect_base_temperatures = mysql_real_connect(base_temperatures,
-                                       "172.16.0.1", "iris2", "iris2fluidart",
-                                       "jaipaslenomdelabase",1236,NULL,0);
+                                       "lgm-ac-grenoble.fr", "iris2", "iris2fluidart",
+                                       "sdcbat",1236,NULL,0);
     MYSQL* connect_base_fluidart = mysql_real_connect(base_fluidart,
-                                   "172.16.126.150", "root", "xxx",
+                                   "172.16.126.150", "superuser", "bddfluidarttest",
                                    "bddfluidarttest",0,NULL,0);
 
 
@@ -123,10 +124,10 @@ int main(void)
     {
         /*if (!connect_base_temperatures)
         {
-            test(connexion, base_temperatures, false);
+            test("connexion", "base_temperatures", false);
         }
         else
-        { */
+        {*/
         test("connexion", "base_meteo", true);
 
         //Instructions meteo
@@ -134,7 +135,7 @@ int main(void)
         mysql_query(base_meteo, commande_meteo);
         MYSQL_RES *resultat_meteo = mysql_store_result(base_meteo);
         char * chaine_meteo = (char *)malloc(500);
-        while (row = mysql_fetch_row(resultat_meteo))
+        while (tableau_resultat_meteo = mysql_fetch_row(resultat_meteo))
         {
             sprintf(chaine_meteo, "Date : %s "
                     "Temperature : %s "
@@ -144,7 +145,14 @@ int main(void)
                     "Pluviometrie : %s "
                     "Vitesse du vent : %s "
                     "Direction du vent : %s\n",
-                    row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8]);
+                    tableau_resultat_meteo[1],
+                    tableau_resultat_meteo[2],
+                    tableau_resultat_meteo[3],
+                    tableau_resultat_meteo[4],
+                    tableau_resultat_meteo[5],
+                    tableau_resultat_meteo[6],
+                    tableau_resultat_meteo[7],
+                    tableau_resultat_meteo[8]);
             fputs(chaine_meteo, fichier);
         }
         mysql_free_result(resultat_meteo);
@@ -154,14 +162,18 @@ int main(void)
         mysql_query(base_meteo, commande_solaire);
         MYSQL_RES *resultat_solaire = mysql_store_result(base_meteo);
         char * chaine_solaire = (char *)malloc(500);
-        while (row = mysql_fetch_row(resultat_solaire))
+        while (tableau_resultat_solaire = mysql_fetch_row(resultat_solaire))
         {
             sprintf(chaine_solaire, "Date : %s "
                     "Puissance fournie : %s "
                     "Eclairement : %s "
                     "Energie totale : %s "
                     "Energie du jour : %s\n",
-                    row[1],row[2],row[3],row[4],row[5]);
+                    tableau_resultat_solaire[1],
+                    tableau_resultat_solaire[2],
+                    tableau_resultat_solaire[3],
+                    tableau_resultat_solaire[4],
+                    tableau_resultat_solaire[5]);
             fputs(chaine_solaire, fichier);
         }
         mysql_free_result(resultat_solaire);
@@ -181,18 +193,21 @@ int main(void)
         //}
     }
 
-    /*if (!connect_base_fluidart)
+    //Connexion a la base de donnee du serveur
+    if (!connect_base_fluidart)
     {
         test("connexion", "base_fluidart", false);
     }
     else
     {
+        //Si cela marche...
         test("connexion", "base_fluidart", true);
+        //char commande_notre_bdd[] = "select * from solaire_valeurs_brutes;";
+        //mysql_query(base_meteo, commande_notre_bdd);
     }
-    mysql_close(base_fluidart);*/
 
+    mysql_close(base_fluidart);
     fclose(fichier);
-
     return 0;
+}   
 
-}
