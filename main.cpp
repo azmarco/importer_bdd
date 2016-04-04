@@ -11,7 +11,9 @@
 #include <string>
 #include <cstring>
 #include <iostream>
+#include <ctime>
 //Bibliotheques C
+#include <windows.h>
 #include <time.h>
 #include <winsock.h>
 #include <MYSQL/mysql.h>
@@ -30,6 +32,7 @@ char* temps()
     return c_time_string; //type string
 }
 
+//Les messages d'erreur (ou de bon fonctionnement)
 void test(char* operation_sur_base, char* nom_base, bool success)
 {
     if (success==false)
@@ -58,14 +61,14 @@ void test(char* operation_sur_base, char* nom_base, bool success)
 
 int main(void)
 {
-    //Declarations des bases
+//Declarations des bases
     MYSQL* base_meteo = mysql_init(NULL);
     MYSQL* base_temperatures = mysql_init(NULL);
     MYSQL* base_fluidart = mysql_init(NULL);
-    MYSQL_ROW tableau_resultat_solaire;
-    MYSQL_ROW tableau_resultat_meteo;
+    MYSQL_ROW row_resultat_solaire;
+    MYSQL_ROW row_resultat_meteo;
 
-    //Tests d'init sur base meteo
+//Tests d'init sur base meteo
     if(base_meteo==NULL)
     {
         test("mysql_init", "base_meteo", false);
@@ -109,105 +112,74 @@ int main(void)
                                        "lgm-ac-grenoble.fr", "iris2", "iris2fluidart",
                                        "sdcbat",1236,NULL,0);
     MYSQL* connect_base_fluidart = mysql_real_connect(base_fluidart,
-                                   "172.16.126.150", "superuser", "bddfluidarttest",
-                                   "bddfluidarttest",0,NULL,0);
+                                   "172.16.126.150", "writerFluidArt", "xxx",
+                                   "fluidart",0,NULL,0);
 
-
-
-
-    //Gestion des erreurs sur les deux bases
-    if(!connect_base_meteo)
+    
+    
+    //Prelever les données toutes les 30 minutes
+    while (1)
     {
-        test("connexion", "base_meteo", false);
-    }
-    else
-    {
-        /*if (!connect_base_temperatures)
+        Sleep(3600);
+        //Gestion des erreurs sur les trois bases avant execution du programme
+        if(!connect_base_meteo)
         {
-            test("connexion", "base_temperatures", false);
+            test("connexion", "base_meteo", false);
         }
         else
-        {*/
-        test("connexion", "base_meteo", true);
-
-        //Instructions meteo
-        char commande_meteo[] = "select * from meteo_valeurs_brutes;";
-        mysql_query(base_meteo, commande_meteo);
-        MYSQL_RES *resultat_meteo = mysql_store_result(base_meteo);
-        char * chaine_meteo = (char *)malloc(500);
-        while (tableau_resultat_meteo = mysql_fetch_row(resultat_meteo))
         {
-            sprintf(chaine_meteo, "Date : %s "
-                    "Temperature : %s "
-                    "Rayonnement solaire : %s "
-                    "Rayonnement UV : %s "
-                    "Hygrometrie : %s "
-                    "Pluviometrie : %s "
-                    "Vitesse du vent : %s "
-                    "Direction du vent : %s\n",
-                    tableau_resultat_meteo[1],
-                    tableau_resultat_meteo[2],
-                    tableau_resultat_meteo[3],
-                    tableau_resultat_meteo[4],
-                    tableau_resultat_meteo[5],
-                    tableau_resultat_meteo[6],
-                    tableau_resultat_meteo[7],
-                    tableau_resultat_meteo[8]);
-            fputs(chaine_meteo, fichier);
+            if (!connect_base_temperatures)
+            {
+                test("connexion", "base_temperatures", false);
+            }
+            else
+            {
+                if (!connect_base_fluidart)
+                {
+                    test("connexion", "base_fluidart", false);
+                }
+                else
+                {
+                    test("connexion", "base_meteo", true);
+                    test("connexion", "base_temperatures", true);
+                    test("connexion", "base_fluidart", true);
+
+                    // Recupération des valeurs
+
+                    char commande_solaire[] = "select * from solaire_valeurs_brutes;";
+                    mysql_query(base_meteo, commande_solaire);
+                    MYSQL_RES *resultat_solaire = mysql_store_result(base_meteo);
+                    char * chaine_solaire = (char *)malloc(2000);
+                    while (row_resultat_solaire = mysql_fetch_row(resultat_solaire))
+                    {
+                        sprintf(chaine_solaire, "Date : %s "
+                                "Puissance fournie : %s "
+                                "Eclairement : %s "
+                                "Energie totale : %s "
+                                "Energie du jour : %s\n",
+                                row_resultat_solaire[1],
+                                row_resultat_solaire[2],
+                                row_resultat_solaire[3],
+                                row_resultat_solaire[4],
+                                row_resultat_solaire[5]);
+                        fputs(chaine_solaire, fichier);
+
+                        // Envoi des données à notre BDD
+                        char commande_envoi_vers_base_fluidart[] = "INSERT INTO ??? VALUES ";
+                        mysql_query(base_fluidart, commande_envoi_vers_base_fluidart);
+                        //
+                        //
+                    }
+                    mysql_free_result(resultat_solaire);
+                }
+            }
         }
-        mysql_free_result(resultat_meteo);
-
-        // Instructions solaires
-        char commande_solaire[] = "select * from solaire_valeurs_brutes;";
-        mysql_query(base_meteo, commande_solaire);
-        MYSQL_RES *resultat_solaire = mysql_store_result(base_meteo);
-        char * chaine_solaire = (char *)malloc(500);
-        while (tableau_resultat_solaire = mysql_fetch_row(resultat_solaire))
-        {
-            sprintf(chaine_solaire, "Date : %s "
-                    "Puissance fournie : %s "
-                    "Eclairement : %s "
-                    "Energie totale : %s "
-                    "Energie du jour : %s\n",
-                    tableau_resultat_solaire[1],
-                    tableau_resultat_solaire[2],
-                    tableau_resultat_solaire[3],
-                    tableau_resultat_solaire[4],
-                    tableau_resultat_solaire[5]);
-            fputs(chaine_solaire, fichier);
-        }
-        mysql_free_result(resultat_solaire);
-
-        //Liberation de la base
-        mysql_close(base_meteo);
-
-        //Instructions temperatures
-        //const char * commande_temperatures = "show tables;";
-        //mysql_query(base_temperatures, commande_temperatures);
-        //MYSQL_RES *resultat_temperatures = mysql_store_result(base_temperatures);
-        //printf ("Nb de colonnes: %lu\n",
-        //        (unsigned long) mysql_num_rows(resultat_temperatures));
-        //Liberation du resultat et de la base
-        //mysql_free_result(resultat_temperatures);
-        //mysql_close(base_temperatures);
-        //}
     }
 
-    //Connexion a la base de donnee du serveur
-    if (!connect_base_fluidart)
-    {
-        test("connexion", "base_fluidart", false);
-    }
-    else
-    {
-        //Si cela marche...
-        test("connexion", "base_fluidart", true);
-        //char commande_notre_bdd[] = "select * from solaire_valeurs_brutes;";
-        //mysql_query(base_meteo, commande_notre_bdd);
-    }
-
+    //Fermeture des bases
+    mysql_close(base_meteo);
+    mysql_close(base_temperatures);
     mysql_close(base_fluidart);
     fclose(fichier);
     return 0;
-}   
-
+}
