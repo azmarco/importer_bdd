@@ -1,10 +1,12 @@
 # depslib dependency file v1.0
-1458828510 source:d:\dropbox\fluid'art\importer_bdd\main.cpp
+1459770370 source:d:\dropbox\fluid'art\importer_bdd\main.cpp
 	<cstdio>
 	<cstdlib>
 	<string>
 	<cstring>
 	<iostream>
+	<ctime>
+	<windows.h>
 	<time.h>
 	<winsock.h>
 	<MYSQL/mysql.h>

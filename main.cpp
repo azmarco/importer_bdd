@@ -37,7 +37,7 @@ void test(char* operation_sur_base, char* nom_base, bool success)
 {
     if (success==false)
     {
-        std::string texte = std::string(temps())
+        string texte = std::string(temps())
                             + "Erreur avec "
                             + operation_sur_base
                             + " sur "
@@ -49,7 +49,7 @@ void test(char* operation_sur_base, char* nom_base, bool success)
     else
     {
         //si cela marche
-        std::string texte = std::string(temps())
+        string texte = std::string(temps())
                             + operation_sur_base
                             + " fonctionne avec "
                             + nom_base
@@ -78,7 +78,7 @@ int main(void)
         test("mysql_init", "base_meteo", true);
     }
 
-    //Tests d'init sur base temperatures
+//Tests d'init sur base temperatures
     if(base_temperatures==NULL)
     {
         test("mysql_init", "base_temperatures", false);
@@ -88,7 +88,7 @@ int main(void)
         test("mysql_init", "base_temperatures", true);
     }
 
-    //Tests d'init sur base fluidart
+//Tests d'init sur base fluidart
     if(base_fluidart==NULL)
     {
         test("mysql_init", "base_fluidart", false);
@@ -98,18 +98,18 @@ int main(void)
         test("mysql_init", "base_fluidart", true);
     }
 
-    //Options de connexion
+//Options de connexion
     int options_meteo=mysql_options(base_meteo,
                                     MYSQL_SECURE_AUTH, "false");
     int options_temperatures=mysql_options(base_temperatures,
                                            MYSQL_SECURE_AUTH, "false");
 
-    //Connexion
+//Connexion
     MYSQL* connect_base_meteo = mysql_real_connect(base_meteo,
                                 "172.16.0.1", "iris2", "iris2fluidart",
                                 "solaireLGM",1235,NULL,0);
     MYSQL* connect_base_temperatures = mysql_real_connect(base_temperatures,
-                                       "lgm-ac-grenoble.fr", "iris2", "iris2fluidart",
+                                       "lgm.ac-grenoble.fr", "iris2", "iris2fluidart",
                                        "sdcbat",1236,NULL,0);
     MYSQL* connect_base_fluidart = mysql_real_connect(base_fluidart,
                                    "172.16.126.150", "writerFluidArt", "xxx",
@@ -117,10 +117,9 @@ int main(void)
 
     
     
-    //Prelever les données toutes les 30 minutes
+//Prelever les données toutes les 30 minutes
     while (1)
     {
-        Sleep(3600);
         //Gestion des erreurs sur les trois bases avant execution du programme
         if(!connect_base_meteo)
         {
@@ -164,22 +163,26 @@ int main(void)
                                 row_resultat_solaire[5]);
                         fputs(chaine_solaire, fichier);
 
-                        // Envoi des données à notre BDD
+                        /* Envoi des données à notre BDD
                         char commande_envoi_vers_base_fluidart[] = "INSERT INTO ??? VALUES ";
                         mysql_query(base_fluidart, commande_envoi_vers_base_fluidart);
                         //
-                        //
+                        */
                     }
                     mysql_free_result(resultat_solaire);
                 }
             }
         }
+    //"Dormir" pendant 1/2 heure
+        Sleep(1000*60*30);
     }
 
-    //Fermeture des bases
+//Fermeture des bases
     mysql_close(base_meteo);
     mysql_close(base_temperatures);
     mysql_close(base_fluidart);
     fclose(fichier);
     return 0;
+    
+    
 }
